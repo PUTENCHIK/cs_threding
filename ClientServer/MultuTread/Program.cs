@@ -5,6 +5,8 @@ class Program
 {
     private static void Main()
     {
-        Lab01.Run();
+        //Lab01.Run();
+        //Lab02.Run();
+        Lab03.Run();
     }
 }

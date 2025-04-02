@@ -25,6 +25,7 @@ namespace MultuTread
 
         public static void Run()
         {
+            Console.WriteLine("Lab01 started");
             Thread thread1 = new Thread(new ParameterizedThreadStart(PrintRange));
             Thread thread2 = new Thread(new ParameterizedThreadStart(PrintRange));
 
