@@ -11,7 +11,7 @@ namespace EntityFrameworkCore
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Sourse=sqlite.db");
+            optionsBuilder.UseSqlite("Data Source=sqlite.db");
         }
     }
 }
