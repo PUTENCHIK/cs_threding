@@ -1,9 +1,9 @@
-﻿using EntityFrameworkCore.Entities;
+﻿using EFC1.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 
-namespace EntityFrameworkCore
+namespace EFC1
 {
     class Program
     {

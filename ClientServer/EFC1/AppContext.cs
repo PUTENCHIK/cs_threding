@@ -1,7 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using EntityFrameworkCore.Entities;
+﻿using EFC1.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace EntityFrameworkCore
+namespace EFC1
 {
     class AppContext : DbContext
     {

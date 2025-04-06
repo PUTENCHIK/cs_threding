@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EntityFrameworkCore.Entities
+namespace EFC1.Entities
 {
     internal class Student
     {
