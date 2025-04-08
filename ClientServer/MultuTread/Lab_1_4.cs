@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MultuTread
 {
-    class Lab04
+    class Lab_1_4
     {
         private const int Port = 11002;
         private static int _requestCount = 0;

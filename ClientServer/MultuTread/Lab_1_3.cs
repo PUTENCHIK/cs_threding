@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultuTread
 {
-    internal class Lab03
+    internal class Lab_1_3
     {
         static double value = 0.3;
         static readonly object locker = new();

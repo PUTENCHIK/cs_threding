@@ -11,20 +11,23 @@ namespace EFC1
         {
             using (AppContext db = new())
             {
-                Student student1 = new Student { Name = "Vasya", Age = 20 };
-                Student student2 = new Student { Name = "Petya", Age = 35 };
+                db.LoadData();
 
-                db.Add(student1);
-                db.Add(student2);
-                db.SaveChanges();
-
-                Console.WriteLine("Students added");
-
+                // Data display
                 var students = db.Students.ToList();
-
                 foreach (var student in students)
                 {
-                    Console.WriteLine($"[{student.StudentId}] {student.Name}, {student.Age}");
+                    Console.WriteLine($"{student}");
+                }
+
+                // Data updating
+                var enigma = db.Students.OrderBy(s => s.Id).FirstOrDefault();
+                if (enigma != null)
+                {
+                    enigma.Age = 13;
+                    enigma.CreatedAt = DateTime.Now;
+                    db.SaveChanges();
+                    Console.WriteLine($"Updated student: {enigma}");
                 }
             }
         }

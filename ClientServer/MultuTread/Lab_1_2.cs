@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultuTread
 {
-    class Lab02
+    class Lab_1_2
     {
         static int limit = 10;
         static Thread? thread1;

@@ -6,9 +6,9 @@ class Program
 {
     private static async Task Main()
     {
-        //Lab01.Run();
-        //Lab02.Run();
-        //Lab03.Run();
-        await Lab04.Run();
+        //Lab_1_1.Run();
+        //Lab_1_2.Run();
+        //Lab_1_3.Run();
+        //await Lab_1_4.Run();
     }
 }

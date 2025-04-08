@@ -9,7 +9,7 @@ namespace MultuTread
 {
     record class Couple(int Start, int End);
 
-    class Lab01
+    class Lab_1_1
     {
         static void PrintRange(object? data)
         {
