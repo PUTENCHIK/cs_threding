@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Камеры</title>
+        <style>
+            #app {
+                display: flex;
+                justify-content: center;
+            }
+
+            main {
+                width: 1100px;
+                display: flex;
+                flex-direction: column;
+                row-gap: 30px;
+                align-items: flex-start;
+            }
+
+            .cameras-container {
+                width: 100%;
+                display: table;
+                border-collapse: collapse;
+                margin-top: 40px;
+            }
+
+            .camera {
+                display: table-row;
+            }
+
+            .camera:first-child {
+                font-weight: bold;
+            }
+
+            .camera > div {
+                display: table-cell;
+                border: 0px solid transparent;
+                background-clip: padding-box;
+            }
+
+            .camera > div + div {
+                border-left-width: 20px;
+            }
+
+            .camera > a {
+                margin-left: 40px;
+            }
+            
+            .camera + .camera > div {
+                border-top-width: 40px;
+            }
+
+            .buttons {
+                display: flex;
+                column-gap: 20px;
+            }
+
+            .button {
+                display: block;
+                box-sizing: border-box;
+                padding: 10px 30px;
+
+                border-radius: 10px;
+                border: none;
+                outline: 1px solid black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .button:hover {
+                outline: 1px solid #808080;
+            }
+
+            .button.primary {
+                background-color: blue;
+                color: white;
+                outline: none;
+            }
+
+            .button.primary:hover {
+                background-color: rgb(22, 22, 255);
+            }
+
+            .button.delete {
+                background-color: red;
+                color: white;
+                outline: none;
+            }
+
+            .button.delete:hover {
+                background-color: rgb(255, 46, 46);
+            }
+
+            .form_container {
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
+                padding: 20px;
+
+                outline: 1px solid black;
+                border-radius: 20px;
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+                row-gap: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <main>
+                <h1>Страница камер</h1>
+
+                <a href="/">Назад на главную</a>
+
+                <div v-if="!form" class="button" @click="showAddForm">
+                    <span>Добавить камеру</span>
+                </div>
+
+                <div v-if="form" class="form_container">
+                    <h2 v-if="form == 'add'">Добавить камеру</h2>
+                    <h2 v-else>Изменить камеру {{ form_data.id }}</h2>
+                    <form @submit="(event) => form == 'add' ? addCamera(event) : editCamera(event)">
+                        <label>
+                            <span>Адрес:</span>
+                            <input type="text" name="address" :value="form_data.address">
+                        </label>
+                        <div class="buttons">
+                            <div class="button" @click="closeForm">Закрыть</div>
+                            <button class="button primary">{{ form == 'add' ? "Добавить" : "Применить" }}</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div v-if="cameras.length" class="cameras-container">
+                    <div class="camera">
+                        <div>ID</div>
+                        <div>АДРЕС</div>
+                        <div>ДОБАВЛЕНА</div>
+                        <div>ИЗМЕНЕНА</div>
+                        <div>КОЛ-ВО СНИМКОВ</div>
+                    </div>
+                    <div v-for="camera in cameras" class="camera">
+                        <div>{{ camera.id }}</div>
+                        <div>{{ camera.address }}</div>
+                        <div>{{ camera.createdAt }}</div>
+                        <div>{{ camera.updatedAt || '-' }}</div>
+                        <div>{{ camera.snapshots.length }}</div>
+                        <div>
+                            <div class="buttons">
+                                <div class="button edit" @click="showEditForm(camera.id)">
+                                    <span>Изменить</span>
+                                </div>
+                                <div class="button delete" @click="deleteCamera(camera.id)">
+                                    <span>Удалить</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script>
+            const {createApp} = Vue;
+
+            createApp({
+                data() {
+                    return {
+                        cameras: [],
+                        form: null,
+                        form_data: {}
+                    }
+                },
+
+                methods: {
+                    async loadCameras() {
+                        await fetch("/api/Cameras", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            }
+                        })
+                            .then(r => r.json())
+                            .then((r) => {
+                                this.cameras = r;
+                            });
+                    },
+
+                    showAddForm() {
+                        this.form = 'add';
+                    },
+
+                    showEditForm(id) {
+                        this.form = 'edit';
+                        for (let i = 0; i < this.cameras.length; i++) {
+                            if (this.cameras[i].id === id) {
+                                this.form_data = this.cameras[i];
+                            }
+                        }
+                    },
+
+                    closeForm() {
+                        this.form = null;
+                        this.form_data = {};
+                    },
+
+                    async addCamera(event) {
+                        event.preventDefault();
+                        let data = new FormData(event.target);
+                        let json = Object.fromEntries(data);
+                        if (json.address && json.address.trim()) {
+                            await fetch(`/api/Cameras?address=${json.address.trim()}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                }
+                            });
+                            await this.loadCameras();
+                        } else {
+                            throw(new Error("Empty address"));
+                        }
+                        this.closeForm();
+                    },
+
+                    async editCamera(event) {
+                        event.preventDefault();
+                        let data = new FormData(event.target);
+                        let json = Object.fromEntries(data);
+                        if (json.address && json.address.trim()) {
+                            await fetch(`/api/Cameras/${this.form_data.id}?address=${json.address.trim()}`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                }
+                            });
+                            await this.loadCameras();
+                        } else {
+                            throw(new Error("Empty address"));
+                        }
+                        this.closeForm();
+                    },
+
+                    async deleteCamera(id) {
+                        await fetch(`/api/Cameras/${id}`, {
+                            method: "DELETE",
+                            headers: {
+                                "Content-Type": "application/json",
+                            }
+                        });
+                        await this.loadCameras();
+                    }
+                },
+
+                async mounted() {
+                    await this.loadCameras();
+                }
+            }).mount("#app");
+        </script>
+    </body>
+</html>
