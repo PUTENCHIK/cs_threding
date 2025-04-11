@@ -11,6 +11,101 @@
 
             main {
                 width: 1100px;
+                display: flex;
+                flex-direction: column;
+                row-gap: 30px;
+                align-items: flex-start;
+                margin-bottom: 40px;
+            }
+
+            .snapshots-container {
+                width: 100%;
+                display: table;
+                border-collapse: collapse;
+                margin-top: 40px;
+            }
+
+            .snapshot {
+                display: table-row;
+            }
+
+            .snapshot:first-child {
+                font-weight: bold;
+            }
+
+            .snapshot > div {
+                display: table-cell;
+                border: 0px solid transparent;
+                background-clip: padding-box;
+            }
+
+            .snapshot > div + div {
+                border-left-width: 20px;
+            }
+
+            .snapshot > a {
+                margin-left: 40px;
+            }
+            
+            .snapshot + .snapshot > div {
+                border-top-width: 40px;
+            }
+
+            .buttons {
+                display: flex;
+                column-gap: 20px;
+            }
+
+            .button {
+                display: block;
+                box-sizing: border-box;
+                padding: 10px 30px;
+
+                border-radius: 10px;
+                border: none;
+                outline: 1px solid black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .button:hover {
+                outline: 1px solid #808080;
+            }
+
+            .button.primary {
+                background-color: blue;
+                color: white;
+                outline: none;
+            }
+
+            .button.primary:hover {
+                background-color: rgb(22, 22, 255);
+            }
+
+            .button.delete {
+                background-color: red;
+                color: white;
+                outline: none;
+            }
+
+            .button.delete:hover {
+                background-color: rgb(255, 46, 46);
+            }
+
+            .form_container {
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
+                padding: 20px;
+
+                outline: 1px solid black;
+                border-radius: 20px;
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+                row-gap: 30px;
             }
         </style>
     </head>
@@ -20,6 +115,65 @@
                 <h1>Страница снимков</h1>
 
                 <a href="/">Назад на главную</a>
+
+                <div v-if="!form && cameras.length" class="button" @click="showAddForm">
+                    <span>Добавить снимок</span>
+                </div>
+                <p v-if="!cameras.length">Для начала добавьте камеры для добавления снимков</p>
+
+                <div v-if="form" class="form_container">
+                    <h2 v-if="form == 'add'">Добавить снимок</h2>
+                    <h2 v-else>Изменить снимок {{ form_data.id }}</h2>
+                    <form @submit="(event) => form == 'add' ? addSnapshot(event) : editSnapshot(event)">
+                        <label v-if="form == 'add'">
+                            <span>Камера:</span>
+                            <select name="cameraId">
+                                <option
+                                    v-for="camera in cameras"
+                                    :value="camera.id"
+                                    :selected="camera.id == form_data.id"
+                                    min="0">
+                                    Камера {{ camera.id }}
+                                </option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Метка:</span>
+                            <input type="number" name="label" :value="form_data.label">
+                        </label>
+                        <div class="buttons">
+                            <div class="button" @click="closeForm">Закрыть</div>
+                            <button class="button primary">{{ form == 'add' ? "Добавить" : "Применить" }}</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div v-if="snapshots.length" class="snapshots-container">
+                    <div class="snapshot">
+                        <div>ID</div>
+                        <div>ID КАМЕРЫ</div>
+                        <div>МЕТКА</div>
+                        <div>ДОБАВЛЕН</div>
+                        <div>ИЗМЕНЁН</div>
+                    </div>
+                    <div v-for="snapshot in snapshots" class="snapshot">
+                        <div>{{ snapshot.id }}</div>
+                        <div>{{ snapshot.cameraId }}</div>
+                        <div>{{ snapshot.label }}</div>
+                        <div>{{ snapshot.createdAt }}</div>
+                        <div>{{ snapshot.updatedAt || '-' }}</div>
+                        <div>
+                            <div class="buttons">
+                                <div class="button edit" @click="showEditForm(snapshot.id)">
+                                    <span>Изменить</span>
+                                </div>
+                                <div class="button delete" @click="deleteSnapshot(snapshot.id)">
+                                    <span>Удалить</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
 
@@ -30,16 +184,125 @@
             createApp({
                 data() {
                     return {
-
+                        snapshots: [],
+                        cameras: [],
+                        form: null,
+                        form_data: {}
                     }
                 },
 
                 methods: {
-                    
+                    async loadSnapshots() {
+                        await fetch("/api/Snapshots", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            }
+                        })
+                            .then(r => r.json())
+                            .then((r) => {
+                                this.snapshots = r;
+                            });
+                    },
+
+                    async loadCameras() {
+                        await fetch("/api/Cameras", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            }
+                        })
+                            .then(r => r.json())
+                            .then((r) => {
+                                this.cameras = r;
+                            });
+                    },
+
+                    showAddForm() {
+                        this.form = 'add';
+                    },
+
+                    showEditForm(id) {
+                        this.form = 'edit';
+                        for (let i = 0; i < this.snapshots.length; i++) {
+                            if (this.snapshots[i].id === id) {
+                                this.form_data = this.snapshots[i];
+                            }
+                        }
+                    },
+
+                    closeForm() {
+                        this.form = null;
+                        this.form_data = {};
+                    },
+
+                    async addSnapshot(event) {
+                        event.preventDefault();
+                        let data = new FormData(event.target);
+                        let json = Object.fromEntries(data);
+                        if (json.cameraId && json.label) {
+                            if (json.label < 0) {
+                                throw(new Error("Label must be not negative"))
+                            } else {
+                                let flag = true;
+                                for (let i = 0; i < this.cameras.length; i++) {
+                                    if (this.cameras[i].id == json.cameraId) {
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                                if (flag) {
+                                    throw(new Error(`No camera with id ${json.cameraId}`))
+                                }
+                            }
+                            await fetch(`/api/Snapshots?cameraId=${json.cameraId}&label=${json.label}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                }
+                            });
+                            await this.loadSnapshots();
+                        } else {
+                            throw(new Error("Empty camera id or label"));
+                        }
+                        this.closeForm();
+                    },
+
+                    async editSnapshot(event) {
+                        event.preventDefault();
+                        let data = new FormData(event.target);
+                        let json = Object.fromEntries(data);
+                        if (json.label) {
+                            if (json.label < 0) {
+                                throw(new Error("Label must be not negative"))
+                            }
+                            await fetch(`/api/Snapshots/${this.form_data.id}?label=${json.label}`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                }
+                            });
+                            await this.loadSnapshots();
+                        } else {
+                            throw(new Error("Empty label"));
+                        }
+                        this.closeForm();
+                    },
+
+                    async deleteSnapshot(id) {
+                        await fetch(`/api/Snapshots/${id}`, {
+                            method: "DELETE",
+                            headers: {
+                                "Content-Type": "application/json",
+                            }
+                        });
+                        await this.loadSnapshots();
+                    }
                 },
 
-                mounted() {
-
+                async mounted() {
+                    await this.loadSnapshots();
+                    await this.loadCameras();
                 }
             }).mount("#app");
         </script>
